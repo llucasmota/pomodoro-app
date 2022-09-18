@@ -10,10 +10,26 @@ import {
   TaskInput,
 } from './styles'
 
-export function Home() {
-  const { register, handleSubmit, watch } = useForm()
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as zod from 'zod'
 
-  function handleCreateAnewCicle(data: any) {
+const newCycleFormDataSchema = zod.object({
+  task: zod.string().min(1, 'Informar tarefa'),
+  minutesAmount: zod.number().min(5).max(60, 'O intervalor é de 5-60'),
+})
+// inferência de tipagem
+type NewCycleFormData = zod.infer<typeof newCycleFormDataSchema>
+
+export function Home() {
+  const { register, handleSubmit, watch } = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormDataSchema),
+    defaultValues: {
+      minutesAmount: 0,
+      task: '',
+    },
+  })
+
+  function handleCreateAnewCicle(data: NewCycleFormData) {
     console.log(data)
   }
 

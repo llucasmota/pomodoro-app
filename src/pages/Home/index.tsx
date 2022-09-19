@@ -1,4 +1,5 @@
 import { Play } from 'phosphor-react'
+import { useForm } from 'react-hook-form'
 import {
   CountdownContainer,
   FormContainer,
@@ -9,10 +10,35 @@ import {
   TaskInput,
 } from './styles'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as zod from 'zod'
+
+const newCycleFormDataSchema = zod.object({
+  task: zod.string().min(1, 'Informar tarefa'),
+  minutesAmount: zod.number().min(5).max(60, 'O intervalor é de 5-60'),
+})
+// inferência de tipagem
+type NewCycleFormData = zod.infer<typeof newCycleFormDataSchema>
+
 export function Home() {
+  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormDataSchema),
+    defaultValues: {
+      minutesAmount: 0,
+      task: '',
+    },
+  })
+
+  function handleCreateAnewCicle(data: NewCycleFormData) {
+    console.log(data)
+    reset()
+  }
+
+  const taskWatch = watch('task')
+  const isSubmitDisable = !taskWatch
   return (
     <HomeContainer>
-      <form action="">
+      <form onSubmit={handleSubmit(handleCreateAnewCicle)} action="">
         <FormContainer>
           <label htmlFor="task">Vou trabalhar em</label>
           <TaskInput
@@ -20,6 +46,7 @@ export function Home() {
             type="text"
             id="task"
             placeholder="Dê um nome para o seu projeto"
+            {...register('task')}
           />
           <datalist id="task-suggestions">
             <option value="Projeto 1" />
@@ -36,6 +63,7 @@ export function Home() {
             step={5}
             min={5}
             max={60}
+            {...register('minutesAmount', { valueAsNumber: true })}
           />
           <span>minutos</span>
         </FormContainer>
@@ -46,7 +74,7 @@ export function Home() {
           <span>0</span>
           <span>0</span>
         </CountdownContainer>
-        <StartCountdownButton type="submit">
+        <StartCountdownButton disabled={isSubmitDisable} type="submit">
           <Play />
           Começar
         </StartCountdownButton>
